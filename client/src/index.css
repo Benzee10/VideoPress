@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(248, 50%, 98%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --primary: hsl(0, 74%, 66%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --primary: hsl(0, 74%, 66%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --ring: hsl(240, 4.9%, 83.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .video-card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .video-card-hover:hover {
+    @apply -translate-y-1 shadow-xl;
+  }
+  
+  .filter-chip {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .filter-chip:hover {
+    @apply -translate-y-0.5;
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(135deg, hsl(0, 74%, 66%) 0%, hsl(174, 62%, 47%) 100%);
+  }
+  
+  .video-overlay {
+    background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 50%);
+  }
+  
+  .prose {
+    @apply max-w-none;
+  }
+  
+  .prose h1, .prose h2, .prose h3, .prose h4 {
+    @apply text-foreground font-semibold;
+  }
+  
+  .prose p {
+    @apply text-muted-foreground leading-relaxed;
+  }
+  
+  .prose ul {
+    @apply text-muted-foreground;
+  }
+  
+  .prose code {
+    @apply bg-muted px-1.5 py-0.5 rounded text-sm;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-card-hover,
+  .filter-chip {
+    @apply transition-none;
+  }
+}
