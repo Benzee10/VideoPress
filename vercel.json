@@ -16,5 +16,9 @@
     "api/*.ts": {
       "runtime": "@vercel/node"
     }
+  },
+  "env": {
+    "GITHUB_REPO": "@github_repo",
+    "GITHUB_TOKEN": "@github_token"
   }
 }

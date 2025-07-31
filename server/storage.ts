@@ -13,19 +13,103 @@ export interface IStorage {
   incrementLikes(slug: string): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
+export class GitHubStorage implements IStorage {
   private posts: Map<string, Post>;
+  private lastFetch: number = 0;
+  private cacheTimeout: number = 5 * 60 * 1000; // 5 minutes cache
+  private githubRepo: string;
+  private githubToken?: string;
 
   constructor() {
     this.posts = new Map();
-    this.loadPostsFromMarkdown();
+    this.githubRepo = process.env.GITHUB_REPO || 'your-username/your-repo'; // e.g., 'username/videohub-posts'
+    this.githubToken = process.env.GITHUB_TOKEN; // Optional for private repos
+    this.loadPostsFromGitHub();
   }
 
-  private async loadPostsFromMarkdown() {
+  private async loadPostsFromGitHub() {
     try {
+      // Check if we need to refresh cache
+      const now = Date.now();
+      if (this.posts.size > 0 && (now - this.lastFetch) < this.cacheTimeout) {
+        return;
+      }
+
+      console.log(`Fetching posts from GitHub repo: ${this.githubRepo}`);
+      
+      // GitHub API URL to list contents of posts directory
+      const apiUrl = `https://api.github.com/repos/${this.githubRepo}/contents/posts`;
+      
+      const headers: HeadersInit = {
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'VideoHub-Blog'
+      };
+
+      // Add auth token if available (for private repos)
+      if (this.githubToken) {
+        headers['Authorization'] = `token ${this.githubToken}`;
+      }
+
+      const response = await fetch(apiUrl, { headers });
+      
+      if (!response.ok) {
+        console.error(`GitHub API error: ${response.status} ${response.statusText}`);
+        this.loadLocalFallback();
+        return;
+      }
+
+      const files = await response.json();
+      
+      // Clear existing posts
+      this.posts.clear();
+
+      // Process each markdown file
+      for (const file of files) {
+        if (file.name.endsWith('.md') && file.type === 'file') {
+          try {
+            const fileResponse = await fetch(file.download_url);
+            const fileContent = await fileResponse.text();
+            const { data, content } = matter(fileContent);
+            
+            const slug = file.name.replace('.md', '');
+            const post: Post = {
+              id: randomUUID(),
+              slug,
+              title: data.title || 'Untitled',
+              description: data.description || '',
+              published: data.published || new Date().toISOString(),
+              video: data.video || '',
+              thumbnail: data.thumbnail || 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=450',
+              category: data.category || 'General',
+              tags: data.tags || [],
+              content,
+              views: data.views || Math.floor(Math.random() * 5000),
+              likes: data.likes || Math.floor(Math.random() * 500)
+            };
+            
+            this.posts.set(slug, post);
+          } catch (fileError) {
+            console.error(`Error processing file ${file.name}:`, fileError);
+          }
+        }
+      }
+
+      this.lastFetch = now;
+      console.log(`Loaded ${this.posts.size} posts from GitHub`);
+      
+    } catch (error) {
+      console.error("Error loading posts from GitHub:", error);
+      this.loadLocalFallback();
+    }
+  }
+
+  private async loadLocalFallback() {
+    try {
+      console.log("Falling back to local posts directory");
       const postsDir = path.join(process.cwd(), "posts");
+      
       if (!fs.existsSync(postsDir)) {
-        console.log("Posts directory not found, creating sample posts in memory");
+        console.log("No local posts directory found, creating sample posts");
         this.createSamplePosts();
         return;
       }
@@ -56,8 +140,8 @@ export class MemStorage implements IStorage {
         this.posts.set(slug, post);
       }
     } catch (error) {
-      console.error("Error loading posts from markdown:", error);
-      this. createSamplePosts();
+      console.error("Error loading local posts:", error);
+      this.createSamplePosts();
     }
   }
 
@@ -85,28 +169,34 @@ export class MemStorage implements IStorage {
   }
 
   async getAllPosts(): Promise<Post[]> {
+    await this.loadPostsFromGitHub(); // Refresh from GitHub if needed
     return Array.from(this.posts.values()).sort((a, b) => 
       new Date(b.published).getTime() - new Date(a.published).getTime()
     );
   }
 
   async getPostBySlug(slug: string): Promise<Post | undefined> {
+    await this.loadPostsFromGitHub(); // Refresh from GitHub if needed
     return this.posts.get(slug);
   }
 
   async getPostsByCategory(category: string): Promise<Post[]> {
+    await this.loadPostsFromGitHub(); // Refresh from GitHub if needed
     return Array.from(this.posts.values())
       .filter(post => post.category.toLowerCase() === category.toLowerCase())
       .sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime());
   }
 
   async getPostsByTag(tag: string): Promise<Post[]> {
+    await this.loadPostsFromGitHub(); // Refresh from GitHub if needed
     return Array.from(this.posts.values())
       .filter(post => post.tags.some(t => t.toLowerCase() === tag.toLowerCase()))
       .sort((a, b) => new Date(b.published).getTime() - new Date(a.published).getTime());
   }
 
   async incrementViews(slug: string): Promise<void> {
+    // For GitHub-based storage, we'll just increment in memory
+    // In a real app, you might want to track this in a separate analytics service
     const post = this.posts.get(slug);
     if (post) {
       post.views += 1;
@@ -115,6 +205,8 @@ export class MemStorage implements IStorage {
   }
 
   async incrementLikes(slug: string): Promise<void> {
+    // For GitHub-based storage, we'll just increment in memory
+    // In a real app, you might want to track this in a separate analytics service
     const post = this.posts.get(slug);
     if (post) {
       post.likes += 1;
@@ -123,4 +215,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new GitHubStorage();

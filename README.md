@@ -45,36 +45,77 @@ A modern, responsive video blog template built with React, Express.js, and TypeS
    # Your markdown content here
    ```
 
-## Deploy to Vercel
+## Deploy to Vercel with GitHub Posts
 
-### 1. Prepare Your Repository
+This blog loads posts directly from a GitHub repository, making it completely static and easy to manage.
 
-Ensure these files are in your project root:
-- `vercel.json` (already created)
-- `api/` directory with serverless functions (already created)
+### 1. Create Your Posts Repository
 
-### 2. Deploy to Vercel
+**Option A: Separate Posts Repository (Recommended)**
+1. Create a new GitHub repository for your posts (e.g., `videohub-posts`)
+2. Create a `posts/` directory in the root
+3. Add your markdown files to the `posts/` directory
+
+**Option B: Use Same Repository**
+1. Keep your posts in the existing `posts/` directory
+2. Set `GITHUB_REPO` to your main repository name
+
+### 2. Configure Environment Variables
+
+In Vercel Dashboard or CLI, set these environment variables:
+
+**Required:**
+- `GITHUB_REPO` - Your repository in format `username/repository-name`
+
+**Optional:**
+- `GITHUB_TOKEN` - GitHub personal access token (for private repos or higher rate limits)
+
+**Example:**
+```bash
+GITHUB_REPO=johndoe/videohub-posts
+GITHUB_TOKEN=ghp_your_token_here
+```
+
+### 3. Deploy to Vercel
 
 **Option A: Via Vercel CLI**
 ```bash
 npm install -g vercel
-vercel
+vercel --env GITHUB_REPO=username/repo-name
 ```
 
 **Option B: Via Vercel Dashboard**
 1. Go to [vercel.com](https://vercel.com)
 2. Click "New Project"
 3. Import your Git repository
-4. Vercel will automatically detect the configuration
+4. Add environment variables in Project Settings
 5. Click "Deploy"
 
-### 3. Environment Variables (Optional)
+### 4. GitHub Token Setup (Optional)
 
-If you add database features later, configure these in Vercel Dashboard:
-- `DATABASE_URL` - PostgreSQL connection string
-- `NODE_ENV` - Set to "production"
+For private repositories or to avoid rate limits:
 
-### 4. Custom Domain (Optional)
+1. Go to [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Select scopes: `repo` (for private repos) or `public_repo` (for public repos)
+4. Copy the token and add it as `GITHUB_TOKEN` in Vercel
+
+### 5. Set Up Auto-Refresh (Optional)
+
+To automatically refresh your blog when you update posts in GitHub:
+
+1. In your posts repository, go to Settings → Webhooks
+2. Click "Add webhook"
+3. Set Payload URL to: `https://your-domain.vercel.app/api/webhook/github`
+4. Set Content type to: `application/json`
+5. Select "Just the push event"
+6. Click "Add webhook"
+
+Now your blog will update immediately when you push new posts!
+
+**Manual Refresh:** Visit `https://your-domain.vercel.app/api/refresh-cache` to manually refresh the cache.
+
+### 6. Custom Domain (Optional)
 
 In Vercel Dashboard:
 1. Go to Project Settings → Domains
@@ -101,11 +142,59 @@ videohub/
 
 ## Content Management
 
-### Adding New Posts
+### Adding New Posts via GitHub
 
-1. Create a new `.md` file in the `posts/` directory
-2. Use the frontmatter format shown above
-3. Deploy to see your changes live
+**Method 1: GitHub Web Interface**
+1. Go to your posts repository on GitHub
+2. Navigate to the `posts/` directory
+3. Click "Add file" → "Create new file"
+4. Name your file `post-slug.md`
+5. Add frontmatter and content (see format above)
+6. Commit the file
+7. Your blog will automatically update within 5 minutes
+
+**Method 2: Git Commands**
+```bash
+# Clone your posts repository
+git clone https://github.com/username/videohub-posts.git
+cd videohub-posts
+
+# Create new post
+cat > posts/my-new-video.md << 'EOF'
+---
+title: "My Awesome New Video"
+description: "Description of the video content"
+published: "2025-07-31T20:00:00Z"
+video: "https://www.youtube.com/embed/VIDEO_ID"
+thumbnail: "https://example.com/thumbnail.jpg"
+category: "Technology"
+tags: ["tutorial", "tech"]
+---
+
+# My New Video Post
+
+Your markdown content here...
+EOF
+
+# Commit and push
+git add .
+git commit -m "Add new video post"
+git push
+```
+
+**Method 3: GitHub Desktop**
+1. Clone your posts repository using GitHub Desktop
+2. Add/edit markdown files in the `posts/` directory
+3. Commit and sync changes
+4. Blog updates automatically
+
+### Editing Existing Posts
+
+1. Find the post file in your GitHub repository
+2. Click the edit button (pencil icon)
+3. Make your changes
+4. Commit the changes
+5. Blog updates within 5 minutes
 
 ### Video Formats Supported
 
