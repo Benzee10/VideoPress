@@ -1,0 +1,61 @@
+I want you to build me a **modern, responsive blog template** tailored for **video content**. This blog will feature posts with **embedded videos**, either through external embed codes (e.g. YouTube, Vimeo, Telegram, etc.) or direct `.mp4` file links.
+
+Here are the specific requirements:
+
+1. **Framework**: Use **Next.js** with **Tailwind CSS** for styling. Keep it clean, fast, and mobile-friendly.
+
+2. **Markdown Support**:
+   - Blog posts should be written in Markdown (`.md` files).
+   - Each post will contain:
+     - A frontmatter section with metadata: `title`, `description`, `published`, `video`, `thumbnail`, `tags`, `category`.
+     - The video field can be either:
+       - An embed code (iframe from YouTube/Vimeo/Telegram)
+       - Or a direct `.mp4` link
+     - Body content should support images and text.
+     - Example frontmatter:
+       ```yaml
+       ---
+       title: "Example Video Post"
+       description: "This is a sample video blog entry."
+       published: 2025-07-31T20:00:00Z
+       video: "<iframe src='https://www.youtube.com/embed/xyz'></iframe>" 
+       thumbnail: "/images/example-thumb.jpg"
+       category: Entertainment
+       tags: ["Video", "Fun", "2025"]
+       ---
+       ```
+
+3. **Post Rendering Logic**:
+   - On the post page, if the `video` starts with `<iframe`, render it as raw HTML.
+   - If the `video` ends in `.mp4`, render it using a native HTML5 video player with controls, autoplay disabled, and responsive styling.
+
+4. **Homepage Layout**:
+   - Grid of thumbnails from each video post
+   - Clicking a thumbnail should open the post page with full video + post content
+   - Include filtering or sorting by category or tag
+
+5. **SEO**:
+   - Each post should have proper `meta` tags for SEO
+   - Open Graph and Twitter card support for link previews
+
+6. **Deployment**:
+   - It should be easy to deploy to **Vercel**
+   - Add `vercel.json` if needed
+   - Use `next.config.js` to support `.mp4` domain sources (CORS support if needed)
+
+7. **Optional Features**:
+   - Dark mode support
+   - Sticky header with navigation
+   - Footer with social links
+
+Generate all base files needed:
+- `pages/index.tsx`
+- `pages/[slug].tsx`
+- `components/VideoPlayer.tsx`
+- `lib/posts.ts` (to read markdown posts)
+- `styles/globals.css`
+- Sample markdown post
+
+Make sure it works even if a video is missing or the link is broken (graceful fallback).
+
+The end goal is a **clean, video-focused blog template** I can maintain using markdown and update videos easily. Prioritize clean code, good UX, and mobile responsiveness.
