@@ -1,5 +1,7 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { storage } from '../../server/storage';
+import { GitHubAPI } from '../lib/github';
+
+const githubAPI = new GitHubAPI();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
@@ -17,17 +19,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'GET') {
     try {
-      const post = await storage.getPostBySlug(slug as string);
+      const post = await githubAPI.getPostBySlug(slug as string);
       
       if (!post) {
         return res.status(404).json({ message: "Post not found" });
       }
 
-      // Increment views
-      await storage.incrementViews(slug as string);
+      // In a GitHub-based system, we increment views in memory only
+      // For persistent analytics, you'd use a service like Google Analytics
+      post.views += 1;
       
       res.status(200).json(post);
     } catch (error) {
+      console.error('API Error:', error);
       res.status(500).json({ message: "Failed to fetch post" });
     }
   } else {

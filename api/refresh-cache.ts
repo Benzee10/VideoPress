@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { storage } from '../server/storage';
+import { GitHubAPI } from './lib/github';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
@@ -17,12 +17,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       console.log('Manual cache refresh requested');
       
-      // Force refresh the posts cache
-      (storage as any).lastFetch = 0;
-      (storage as any).posts.clear();
-      
-      // Trigger a fresh load
-      const posts = await storage.getAllPosts();
+      // Force refresh by fetching fresh posts from GitHub
+      const githubAPI = new GitHubAPI();
+      const posts = await githubAPI.getAllPosts();
       
       res.status(200).json({ 
         message: 'Cache refreshed successfully',

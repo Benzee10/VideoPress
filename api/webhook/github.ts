@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { storage } from '../../server/storage';
+import { GitHubAPI } from '../lib/github';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
@@ -29,18 +29,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
 
         if (affectsPosts) {
-          console.log('GitHub webhook: Posts directory updated, clearing cache');
+          console.log('GitHub webhook: Posts directory updated, refreshing posts');
           
-          // Force refresh the posts cache
-          // We can access the private method by casting to any
-          (storage as any).lastFetch = 0;
-          (storage as any).posts.clear();
-          
-          // Trigger a fresh load
-          await storage.getAllPosts();
+          // Force refresh by fetching fresh posts from GitHub
+          const githubAPI = new GitHubAPI();
+          const posts = await githubAPI.getAllPosts();
           
           res.status(200).json({ 
             message: 'Cache refreshed successfully',
+            postsCount: posts.length,
             timestamp: new Date().toISOString()
           });
         } else {

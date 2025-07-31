@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { storage } from '../../../server/storage';
+import { GitHubAPI } from '../../lib/github';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS
@@ -17,15 +17,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (req.method === 'POST') {
     try {
-      const post = await storage.getPostBySlug(slug as string);
+      const githubAPI = new GitHubAPI();
+      const post = await githubAPI.getPostBySlug(slug as string);
       
       if (!post) {
         return res.status(404).json({ message: "Post not found" });
       }
 
-      await storage.incrementLikes(slug as string);
+      // For GitHub-based storage, we increment likes in memory only
+      // In production, you'd track this in analytics or a separate service
+      post.likes += 1;
       res.status(200).json({ message: "Post liked successfully" });
     } catch (error) {
+      console.error('API Error:', error);
       res.status(500).json({ message: "Failed to like post" });
     }
   } else {
